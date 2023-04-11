@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <string>
 #include <cstring>
+#include <optional>
+#include <array>
 #include "core/common/gsl.h"
 #include "onnxruntime_config.h"
 
@@ -32,6 +34,14 @@
 #include "core/common/span_utils.h"
 
 namespace onnxruntime {
+using ShardDim = absl::InlinedVector<std::int32_t, 5>;
+using MemoryLocations = absl::InlinedVector<std::int32_t, 16>;
+//typedef std::int32_t MemoryLocations[16];
+//using MemoryLocations = std::array<MemoryLocation, 16>;
+struct ShardInfo {
+    ShardDim shardDims_;
+    MemoryLocations locations_;
+};
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #ifdef HAS_NULL_DEREFERENCE
@@ -181,6 +191,8 @@ class TensorShape {
     size_t len = values_.size();
     return len == 0 || (len == 1 && values_[0] == 1);
   }
+
+  virtual std::optional<ShardInfo> shardInfo() const { return std::nullopt; }
 
  private:
   struct External {};
